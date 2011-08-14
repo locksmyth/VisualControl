@@ -1,0 +1,6 @@
+name: VisualControl
+main: me.locksmyth.visualcontrol.VisualControl
+version: 0.0.2
+depend: [Spout]
+softdepend: [StyxSpace, Sphereworld]
+description: Multiworld control over world visual aesthetics. Including unique texture packs, sun, moon, star and cloud details.
