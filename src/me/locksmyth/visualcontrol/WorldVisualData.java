@@ -2,7 +2,6 @@ package me.locksmyth.visualcontrol;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.List;
 
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -129,15 +128,17 @@ public class WorldVisualData {
 		}
 
 		public boolean setURL(final String file) {
-			if (urlExists(file, "png")) {
+			if ((file != null) && urlExists(file, "image/png")) {
 				url = file;
+				return true;
+			} else {
+				return false;
 			}
-			return true;
 		}
 	}
 
 	public class StarVisuals extends SkyObject {
-		private int frequency = 100;
+		private int frequency = 1500;
 
 		public StarVisuals(final boolean visible, final int frequency) {
 			try {
@@ -197,140 +198,141 @@ public class WorldVisualData {
 		}
 	}
 
-	public boolean doCommand(final CommandSender sender, final List<String> command) {
-		boolean state = false;
-		boolean setInt = false;
-		boolean setVisible = false;
-		boolean setFile = false;
-		String intType = "";
+	public boolean doCommand(final CommandSender sender, final String entity, final String setting) {
 		int value = 0;
-		String string = "";
-
+		String intType = "";
+		VisualControlPlayerManager.config.load();
 		try {
-			value = Integer.getInteger(command.get(1)).intValue();
-			setInt = true;
-		} catch (final NumberFormatException e) {
-			setVisible = true;
-			if (command.get(1).equalsIgnoreCase("on")) {
-				state = true;
-			} else if (command.get(1).equalsIgnoreCase("off")) {
-				state = true;
-			} else {
-				setVisible = false;
-				setFile = true;
-				string = command.get(1);
+			value = Integer.parseInt(setting);
+			switch (VisualControl.KeyWords.fromString(entity)) {
+			case MOON:
+			case SUN:
+				intType = "size";
+			break;
+			case CLOUDS:
+				intType = "height";
+			break;
+			case STARS:
+				intType = "frequency";
+			break;
+			default:
+				sender.sendMessage("Not sure as to what " + entity + " refers.");
 			}
-		}
-		SkyObject obj = new SkyObject();
-		switch (VisualControl.KeyWords.fromString(command.get(0))) {
-		case STARS:
-			obj = stars;
-			intType = "frequency";
-		break;
-		case MOON:
-			obj = moon;
-			intType = "size";
-		break;
-		case SUN:
-			obj = sun;
-			intType = "size";
-		break;
-		case CLOUDS:
-			obj = moon;
-			intType = "height";
-		break;
-		case USE:
-			if (!(defaultTexturePack = string.equalsIgnoreCase("default") ? true : false)) {
-				if (urlExists(string, "zip")) {
-					textureFile = string;
-					VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + ".texturePack.file", string);
-					VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + ".texturePack.useDefaultTexture", false);
+			if (VisualControl.KeyWords.fromString(entity) != null) {
+				VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + "." + entity.toLowerCase() + "." + intType, value);
+				return true;
+			}
+		} catch (final NumberFormatException e) {
+			if (setting.equalsIgnoreCase("on") || setting.equalsIgnoreCase("off")) {
+				VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + "." + entity.toLowerCase() + ".visible", (setting.equalsIgnoreCase("on")));
+				return true;
+			} else {
+				switch (VisualControl.KeyWords.fromString(entity)) {
+				case MOON:
+					if (urlExists(setting, "image/png")) {
+						textureFile = setting;
+						VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + "." + entity.toLowerCase() + ".file", setting);
+						return true;
+					} else {
+						sender.sendMessage("URL " + setting + " does not resolve to a valid PNG.");
+						return true;
+					}
+				case SUN:
+					if (urlExists(setting, "image/png")) {
+						textureFile = setting;
+						VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + "." + entity.toLowerCase() + ".file", setting);
+						return true;
+					} else {
+						sender.sendMessage("URL " + setting + " does not resolve to a valid PNG.");
+						return true;
+					}
+				case USE:
+					if (!(defaultTexturePack = setting.equalsIgnoreCase("default") ? true : false)) {
+						if (urlExists(setting, "application/zip")) {
+							textureFile = setting;
+							VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + ".texturePack.file", setting);
+							VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + ".texturePack.useDefaultTexture", false);
+							return true;
+						} else {
+							sender.sendMessage("URL " + setting + " does not resolve to a valid ZIP.");
+							return true;
+						}
+					} else {
+						VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + ".texturePack.useDefaultTexture", true);
+						return true;
+					}
+				case TITLE:
+					textureTitle = setting;
+					VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + ".texturePack.title", setting);
 					return true;
-				} else {
+				default:
 					return false;
 				}
-			} else {
-				VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + ".texturePack.useDefaultTexture", true);
 			}
-		break;
-		case TITLE:
-			textureTitle = string;
-			VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + ".texturePack.title", string);
-			return true;
-		default:
-			return false;
-		}
-		try {
-			if (setInt) {
-				obj.setInt(value);
-				VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + "." + command.get(0).toLowerCase() + "." + intType, value);
-			} else if (setVisible) {
-				obj.setVisibility(state);
-				VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + "." + command.get(0).toLowerCase() + ".visible", state);
-			} else if (setFile) {
-				obj.setString(string);
-				VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + "." + command.get(0).toLowerCase() + ".file", string);
-			}
-		} catch (final IntegerOutOfBoundsException e) {
+		} catch (final Throwable t) {
+			sender.sendMessage(t.toString());
 		}
 		return false;
 	}
 
 	public void onPlayerTP(final SpoutPlayer player) {
-		plugin.console.sendMessage("[" + plugin.name + "] " + player.getName());
+		try {
+			SpoutManager.getSkyManager().setCloudsVisible(player, clouds.isVisible());
+			SpoutManager.getSkyManager().setStarsVisible(player, stars.isVisible());
+			SpoutManager.getSkyManager().setMoonVisible(player, moon.isVisible());
+			SpoutManager.getSkyManager().setSunVisible(player, sun.isVisible());
 
-		SpoutManager.getSkyManager().setCloudsVisible(player, clouds.isVisible());
-		SpoutManager.getSkyManager().setStarsVisible(player, stars.isVisible());
-		SpoutManager.getSkyManager().setMoonVisible(player, moon.isVisible());
-		SpoutManager.getSkyManager().setSunVisible(player, sun.isVisible());
-
-		if (defaultTexturePack == false) {
-			if ((textureFile != null) && (playerManager.getPlayerData(player, "texture") != textureFile.toString())) {
-				player.setTexturePack(textureFile.toString());
-				playerManager.setPlayerData(player, "texture", textureFile.toString());
-				if (VisualControlPlayerManager.announce) {
-					player.sendNotification("Visual Control", textureTitle.toString() + " loaded.", Material.PAINTING);
-				}
-			}
-		} else {
-			if ((VisualControlPlayerManager.defaultFile != null) && (playerManager.getPlayerData(player, "texture") != VisualControlPlayerManager.defaultFile.toString())) {
-				player.setTexturePack(VisualControlPlayerManager.defaultFile.toString());
-				playerManager.setPlayerData(player, "texture", VisualControlPlayerManager.defaultFile.toString());
-				if (VisualControlPlayerManager.announce) {
-					player.sendNotification("Visual Control", VisualControlPlayerManager.defaultTitle.toString() + " loaded.", Material.PAINTING);
+			if (defaultTexturePack == false) {
+				if ((textureFile != null) && (playerManager.getPlayerData(player, "texture") != textureFile.toString())) {
+					player.setTexturePack(textureFile.toString());
+					playerManager.setPlayerData(player, "texture", textureFile.toString());
+					if (VisualControlPlayerManager.announce) {
+						player.sendNotification("Visual Control", textureTitle.toString() + " loaded.", Material.PAINTING);
+					}
 				}
 			} else {
-				playerManager.setPlayerData(player, "texture", "");
-				// player.resetTextureControl();
+				if ((VisualControlPlayerManager.defaultFile != null) && (playerManager.getPlayerData(player, "texture") != VisualControlPlayerManager.defaultFile.toString())) {
+					player.setTexturePack(VisualControlPlayerManager.defaultFile.toString());
+					playerManager.setPlayerData(player, "texture", VisualControlPlayerManager.defaultFile.toString());
+					if (VisualControlPlayerManager.announce) {
+						player.sendNotification("Visual Control", VisualControlPlayerManager.defaultTitle.toString() + " loaded.", Material.PAINTING);
+					}
+				} else {
+					playerManager.setPlayerData(player, "texture", "");
+					// player.resetTextureControl();
+				}
 			}
-		}
-		if (clouds.isVisible()) {
-			SpoutManager.getSkyManager().setCloudHeight(player, clouds.getLevel());
-		}
-		if (stars.isVisible()) {
-			SpoutManager.getSkyManager().setStarFrequency(player, stars.getFrequency());
-		} else {
-			SpoutManager.getSkyManager().setStarFrequency(player, 0);
-		}
-		if (sun.isVisible()) {
-			SpoutManager.getSkyManager().setSunSizePercent(player, sun.getSize());
-			if ((sun.hasURL()) && (playerManager.getPlayerData(player, "sun") != sun.getURL())) {
-				SpoutManager.getSkyManager().setSunTextureUrl(player, sun.getURL());
-				playerManager.setPlayerData(player, "sun", sun.getURL());
-			} else if (!sun.hasURL()) {
-				SpoutManager.getSkyManager().setSunTextureUrl(player, null);
-				playerManager.setPlayerData(player, "sun", "");
+			if (clouds.isVisible()) {
+				SpoutManager.getSkyManager().setCloudHeight(player, clouds.getLevel());
 			}
-		}
-		if (moon.isVisible()) {
-			SpoutManager.getSkyManager().setMoonSizePercent(player, moon.getSize());
-			if ((moon.hasURL()) && (playerManager.getPlayerData(player, "moon") != moon.getURL())) {
-				SpoutManager.getSkyManager().setMoonTextureUrl(player, moon.getURL());
-				playerManager.setPlayerData(player, "moon", moon.getURL());
-			} else if (!moon.hasURL()) {
-				SpoutManager.getSkyManager().setMoonTextureUrl(player, null);
-				playerManager.setPlayerData(player, "moon", "");
+			if (stars.isVisible()) {
+				SpoutManager.getSkyManager().setStarFrequency(player, stars.getFrequency());
 			}
+			if (sun.isVisible()) {
+				SpoutManager.getSkyManager().setSunSizePercent(player, sun.getSize());
+				if ((sun.hasURL()) && (playerManager.getPlayerData(player, "sun") != sun.getURL())) {
+					SpoutManager.getSkyManager().setSunTextureUrl(player, sun.getURL());
+					playerManager.setPlayerData(player, "sun", sun.getURL());
+				} else if (!sun.hasURL()) {
+					SpoutManager.getSkyManager().setSunTextureUrl(player, null);
+					playerManager.setPlayerData(player, "sun", "");
+				}
+			}
+			if (moon.isVisible()) {
+				SpoutManager.getSkyManager().setMoonSizePercent(player, moon.getSize());
+				if ((moon.hasURL()) && (playerManager.getPlayerData(player, "moon") != moon.getURL())) {
+					SpoutManager.getSkyManager().setMoonTextureUrl(player, moon.getURL());
+					playerManager.setPlayerData(player, "moon", moon.getURL());
+				} else if (!moon.hasURL()) {
+					SpoutManager.getSkyManager().setMoonTextureUrl(player, null);
+					playerManager.setPlayerData(player, "moon", "");
+				}
+			}
+		} catch (final UnsupportedOperationException e) {
+			if (VisualControlPlayerManager.announce) {
+				player.sendMessage(e.toString());
+			}
+			plugin.console.sendMessage("[" + plugin.name + "] " + e.toString());
 		}
 	}
 
@@ -343,29 +345,29 @@ public class WorldVisualData {
 		value = value.concat((clouds.isVisible() ? "Cloud layer: " + clouds.getLevel() + "\n" : ""));
 		value = value.concat("Show moon? " + (moon.isVisible() ? "Yes" : "No") + "\n");
 		value = value.concat((moon.isVisible() ? "Moon size (%): " + moon.getSize() + "\n" : ""));
-		value = value.concat((moon.isVisible() ? "Moon texture: " + (moon.hasURL() ? "NONE" : moon.getURL()) + "\n" : ""));
+		value = value.concat((moon.isVisible() ? "Moon texture: " + (moon.hasURL() ? moon.getURL() : "NONE") + "\n" : ""));
 		value = value.concat("Show stars? " + (stars.isVisible() ? "Yes" : "No") + "\n");
 		value = value.concat((stars.isVisible() ? "Star frequency: " + stars.getFrequency() + "\n" : ""));
 		value = value.concat("Show sun? " + (sun.isVisible() ? "Yes" : "No") + "\n");
 		value = value.concat((sun.isVisible() ? "Sun size (%): " + sun.getSize() + "\n" : ""));
-		value = value.concat((sun.isVisible() ? "Sun texture: " + (sun.hasURL() ? "NONE" : sun.getURL()) + "\n" : ""));
+		value = value.concat((sun.isVisible() ? "Sun texture: " + (sun.hasURL() ? sun.getURL() : "NONE") + "\n" : ""));
 		return value;
 	}
 
 	private boolean urlExists(final String URLName, final String type) {
+		if (URLName != null) {
+			return true; // TODO figure out why URL validation is not working.
+		}
 		try {
-			HttpURLConnection.setFollowRedirects(false);
-			// note : you may also need
-			// HttpURLConnection.setInstanceFollowRedirects(false)
 			final HttpURLConnection con = (HttpURLConnection) new URL(URLName).openConnection();
 			con.setRequestMethod("HEAD");
 			if ((con.getResponseCode() == HttpURLConnection.HTTP_OK) && con.getContentType().equalsIgnoreCase(type)) {
 				return true;
 			} else {
+				plugin.console.sendMessage(con.getContentType());
 				return false;
 			}
 		} catch (final Exception e) {
-			e.printStackTrace();
 			return false;
 		}
 	}

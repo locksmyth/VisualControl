@@ -132,9 +132,10 @@ public class VisualControlPlayerManager {
 
 	public void loadPlayerTexture(final Player player, final World world) {
 		final SpoutPlayer splayer = SpoutManager.getPlayer(player);
+		plugin.console.sendMessage("[" + plugin.name + "] " + player.getName() + " " + (splayer.isSpoutCraftEnabled() ? "Spout Player" : "Not Spout PLayer"));
 		if (splayer.isSpoutCraftEnabled() && (worldData.get(world.getName()) != null)) {
-			worldData.get(world.getName()).onPlayerTP(splayer);
 			plugin.console.sendMessage("[" + plugin.name + "] " + world.getName() + " attempting to reject " + player.getName() + "'s reality and substitute my own.");
+			worldData.get(world.getName()).onPlayerTP(splayer);
 		}
 	}
 

@@ -3,6 +3,8 @@ package me.locksmyth.visualcontrol;
 import java.util.Arrays;
 import java.util.List;
 
+import me.locksmyth.visualcontrol.WorldVisualData.IntegerOutOfBoundsException;
+
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -34,19 +36,18 @@ public class VisualControl extends JavaPlugin {
 
 	String version = "0.1.0";
 
-	private List<String> commandText = null;
+	public List<String> commandText = null;
 
 	private World getWorldFromCommand(final CommandSender sender) {
 		World world = null;
 		final String worldName = commandText.get(0);
 		if (getServer().getWorld(worldName) != null) {
-			world = getServer().getWorld(commandText.remove(0)); // world name
-			// provided
+			// world name provided
+			world = getServer().getWorld(commandText.remove(0));
 		} else {
 			if ((KeyWords.fromString(worldName) != null) && (sender instanceof Player)) {
-				world = ((Player) sender).getWorld(); // first word is valid
-				// command assume
-				// current world
+				// first word is valid command assume current world
+				world = ((Player) sender).getWorld();
 			}
 		}
 		return world;
@@ -57,17 +58,39 @@ public class VisualControl extends JavaPlugin {
 		commandText = Arrays.asList(args);
 		if (cmd.getName().equalsIgnoreCase("vcset")) {
 			final World world = getWorldFromCommand(sender);
+			if ((commandText.get(0) == null) || (commandText.get(1) == null)) {
+				return false;
+			}
+			final String worldName = world.getName();
+			final WorldVisualData worldVisualData = VisualControlPlayerManager.worldData.get(worldName);
 			if (world != null) {
-				final String worldName = world.getName();
-				final WorldVisualData worldVisualData = VisualControlPlayerManager.worldData.get(worldName);
-				if (worldVisualData.doCommand(sender, commandText)) {
+				if (worldVisualData.doCommand(sender, commandText.get(0), commandText.get(1))) {
 					VisualControlPlayerManager.config.save();
+					try {
+						playerManager.loadConfigWorld(world);
+					} catch (final IntegerOutOfBoundsException e) {
+						sender.sendMessage("The new configuration appears to have been saved.");
+						sender.sendMessage("However the configuration could not beloaded.");
+					}
 					return true;
 				}
 			} else { // Cannot find the indicated world
 				sender.sendMessage("Cannot find selected world.");
 				return false;
 			}
+		}
+		if (cmd.getName().equalsIgnoreCase("vcupdate")) {
+			Player player;
+			if (!commandText.isEmpty()) {
+				player = getServer().getPlayer(commandText.get(0));
+			} else if (sender instanceof Player) {
+				player = (Player) sender;
+			} else {
+				sender.sendMessage("You must select a player to update.");
+				return false;
+			}
+			playerManager.loadPlayerTexture(player, player.getWorld());
+			return true;
 		}
 		return false;
 	}
