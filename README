@@ -1,0 +1,28 @@
+Visual Control - Configure textures and visual elements.
+
+Version: v0.0.2
+Visual Control is a single plugin to specify unique texture packs, sun/moon images and other visual elements that you might want configured on a per-world basis.
+
+I wrote this for my own server because there wasn't anything else that did quite what I wanted, I see now that there are a few options, I will however add this to the
+
+Features:
+    Give each texture pack a title.
+    Specify a global default texture pack.
+    Specify separate texture packs per world.
+    Announce changing texture pack changes, or not.
+    Pick unique sun/moon image and size for each world.
+    Turn off the sun, moon, clouds and the stars.
+    Change the height of the cloud layer.
+
+To Do
+    Allow the selection of colors When spout RB supports it
+    Add commands to edit configurations
+    Permissions for the commands
+    Implement same configurations for regions
+    Ambient Seasons support
+
+Changelog:
+    Version 0.0.2
+        Released for public consumption.
+    Version 0.0.1
+        Development
