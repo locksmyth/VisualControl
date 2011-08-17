@@ -22,6 +22,7 @@ public class VisualControlPlayerManager {
 	public static Configuration config;
 
 	public static Boolean announce = new Boolean(null);
+	public static Boolean update = new Boolean(null);
 	public static String defaultTitle = new String();
 	public static String defaultFile = new String();
 	public static HashMap<String, WorldVisualData> worldData = new HashMap<String, WorldVisualData>();
@@ -58,7 +59,7 @@ public class VisualControlPlayerManager {
 			config.setHeader("# " + plugin.name + " " + plugin.version, "# locksmyth", "#", "#", "# Configuration options ",
 								"# announce: <true/false> // is the player notified of the loading of a new texture pack",
 								"# defaultFile : <URL> // the URL to a direct download of the texture pack",
-								"# defaultTitle : <STRING> // the title of the default texturepack to load", "# worlds:", "#     AlchemyX_nether:", "#         texturePack:",
+								"# defaultTitle : <STRING> // the title of the default texturepack to load", "# worlds:", "#     <world_name>:", "#         texturePack:",
 								"#             file: http://url.to.texturepack", "#             title: Texture Title", "#             useDefaultTexture: true", "#         sun:",
 								"#             file: http://url.to.sun/image.png", "#             size: 0 - 100", "#             visible: true/false", "#         moon:",
 								"#             file: http://url.to.moon/image.png", "#             size: 0 - 100", "#             visible: true/false", "#         stars:",
@@ -71,6 +72,12 @@ public class VisualControlPlayerManager {
 			announce = true;
 		} else {
 			announce = config.getBoolean("announce", false);
+		}
+		if (config.getProperty("update") == null) {
+			config.setProperty("update", false);
+			update = false;
+		} else {
+			update = config.getBoolean("update", false);
 		}
 		if (config.getProperty("defaultTitle") == null) {
 			config.setProperty("defaultTitle", "AlchemyX");

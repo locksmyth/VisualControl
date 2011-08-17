@@ -1,5 +1,6 @@
 package me.locksmyth.visualcontrol;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,12 +30,12 @@ public class VisualControl extends JavaPlugin {
 		}
 	}
 
-	private final VisualControlPlayerListener playerListener = new VisualControlPlayerListener(this);
+	private final VisualControlListener listener = new VisualControlListener(this);
 	final VisualControlPlayerManager playerManager = new VisualControlPlayerManager(this);
 	public ColouredConsoleSender console = new ColouredConsoleSender((CraftServer) Bukkit.getServer());
 	String name = "VisualControl";
 
-	String version = "0.1.0";
+	String version = "0.1.2";
 
 	public List<String> commandText = null;
 
@@ -72,6 +73,9 @@ public class VisualControl extends JavaPlugin {
 						sender.sendMessage("The new configuration appears to have been saved.");
 						sender.sendMessage("However the configuration could not beloaded.");
 					}
+					for (final Player player : world.getPlayers()) {
+						playerManager.loadPlayerTexture(player, player.getWorld());
+					}
 					return true;
 				}
 			} else { // Cannot find the indicated world
@@ -92,6 +96,14 @@ public class VisualControl extends JavaPlugin {
 			playerManager.loadPlayerTexture(player, player.getWorld());
 			return true;
 		}
+		if (cmd.getName().equalsIgnoreCase("vcreload")) {
+			getServer().getPluginManager().disablePlugin(this);
+			try {
+				getServer().getPluginManager().loadPlugin(new File("plugins" + File.separator + "VisualControl.jar"));
+			} catch (final Exception e) {
+				sender.sendMessage("Visual Control could not reload itself after being disabled.\nSorry.");
+			}
+		}
 		return false;
 	}
 
@@ -100,14 +112,20 @@ public class VisualControl extends JavaPlugin {
 	}
 
 	public void onEnable() {
+		final Updater upd = new Updater(this, "http://dl.dropbox.com/u/21888917/VisualControl.jar");
 		VisualControlPlayerManager.config = getConfiguration();
 		playerManager.loadConfig();
+		if (VisualControlPlayerManager.update) {
+			console.sendMessage("Checking for updates...");
+			upd.updateCheck();
+		}
 
 		final PluginManager pm = getServer().getPluginManager();
-		pm.registerEvent(Event.Type.PLAYER_JOIN, playerListener, Event.Priority.Normal, this);
-		pm.registerEvent(Event.Type.PLAYER_PORTAL, playerListener, Event.Priority.Normal, this);
-		pm.registerEvent(Event.Type.PLAYER_RESPAWN, playerListener, Event.Priority.Normal, this);
-		pm.registerEvent(Event.Type.PLAYER_TELEPORT, playerListener, Event.Priority.Normal, this);
+		pm.registerEvent(Event.Type.CUSTOM_EVENT, listener.spout, Event.Priority.Normal, this);
+		pm.registerEvent(Event.Type.WORLD_LOAD, listener.world, Event.Priority.Normal, this);
+		pm.registerEvent(Event.Type.PLAYER_PORTAL, listener.player, Event.Priority.Normal, this);
+		pm.registerEvent(Event.Type.PLAYER_RESPAWN, listener.player, Event.Priority.Normal, this);
+		pm.registerEvent(Event.Type.PLAYER_TELEPORT, listener.player, Event.Priority.Normal, this);
 
 		console.sendMessage("[" + name + "] " + name + " " + version + " enabled");
 	}

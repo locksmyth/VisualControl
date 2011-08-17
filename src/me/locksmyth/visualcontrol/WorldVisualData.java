@@ -247,7 +247,10 @@ public class WorldVisualData {
 						return true;
 					}
 				case USE:
-					if (!(defaultTexturePack = setting.equalsIgnoreCase("default") ? true : false)) {
+					if (setting.equalsIgnoreCase("default")) {
+						VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + ".texturePack.useDefaultTexture", true);
+						return true;
+					} else {
 						if (urlExists(setting, "application/zip")) {
 							textureFile = setting;
 							VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + ".texturePack.file", setting);
@@ -257,9 +260,6 @@ public class WorldVisualData {
 							sender.sendMessage("URL " + setting + " does not resolve to a valid ZIP.");
 							return true;
 						}
-					} else {
-						VisualControlPlayerManager.config.setProperty("worlds." + world.getName() + ".texturePack.useDefaultTexture", true);
-						return true;
 					}
 				case TITLE:
 					textureTitle = setting;

@@ -1,28 +1,62 @@
 Visual Control - Configure textures and visual elements.
-
-Version: v0.0.2
+Version: v0.1
 Visual Control is a single plugin to specify unique texture packs, sun/moon images and other visual elements that you might want configured on a per-world basis.
 
-I wrote this for my own server because there wasn't anything else that did quite what I wanted, I see now that there are a few options, I will however add this to the
+Apparently I had the wrong jar file in my dropbox, that has been corrected now that I have updated the plugin. It now contains a basic command system. /vcset and /vcupdate see their details below. At the moment there is no support for permissions. That is the next goal.
+
+previous notes said:
+[8-15-2001]I wrote this for my own server because there wasn't anything else that did quite what I wanted, I see now that there are a few options, I will however add this to the pool.
+
 
 Features:
-    Give each texture pack a title.
-    Specify a global default texture pack.
-    Specify separate texture packs per world.
-    Announce changing texture pack changes, or not.
-    Pick unique sun/moon image and size for each world.
-    Turn off the sun, moon, clouds and the stars.
-    Change the height of the cloud layer.
+Give each texture pack a title.
+Specify a global default texture pack.
+Specify separate texture packs per world.
+Announce changing texture pack changes, or not.
+Pick unique sun/moon image and size for each world.
+Turn off the sun, moon, clouds and the stars.
+Change the height of the cloud layer.
+
+Commands
+Code:
+/vcset [world] <sun|moon|clouds|stars|use> <setting>
+vcset is used to alter the configuration file from the chat bar.
+If you do not specify a world it acts upon the current world.
+To toggle the visibility of a sky element use on or off as the setting.
+/vcset sun on
+This will work for the sun, moon, clouds and stars.
+To change the size of the sun or moon simply use a number between 0 - 200 as the setting
+/vcset moon 150
+To specify an image for the sun or moon supply the url as the setting
+/vcset moon http://dl.dropbox.com/u/21888917/sunqu.png
+To force the cloud layer to a different level
+/vcset clouds 75
+And similarly the change the frequency of stars
+/vcset stars 1500
+
+
+/vcupdate [player]
+vcupdate will cause the selected player (or the caller is none is provided) to have the visuals of their current world forcibly updated. (I.E without a teleport/spawn event.)
+
+
+Know Bugs
+URL's are not validated for existence nor file type.
+stars cannot be bought back once they have been disabled. :S
+
 
 To Do
-    Allow the selection of colors When spout RB supports it
-    Add commands to edit configurations
-    Permissions for the commands
-    Implement same configurations for regions
-    Ambient Seasons support
+Allow the selection of colors When spout RB supports it..
+Permissions for the commands
+Implement same configurations for regions
+Ambient Seasons support
+Download (requires Spout)
+GitHub source code
 
 Changelog:
-    Version 0.0.2
-        Released for public consumption.
-    Version 0.0.1
-        Development
+Version 0.1
+Major structural changes.
+Chat Command interface added.
+Version 0.0.2
+Released for public consumption.
+Version 0.0.1
+Development
