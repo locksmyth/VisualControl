@@ -7,11 +7,43 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.getspout.spoutapi.SpoutManager;
+import org.getspout.spoutapi.gui.Color;
 import org.getspout.spoutapi.player.SpoutPlayer;
 
 public class WorldVisualData {
+	public class AetherVisuals {
+		private VisualControlColor color;
+
+		public AetherVisuals() {
+			color = new VisualControlColor();
+		}
+
+		public AetherVisuals(final VisualControlColor color) {
+			setColor(color);
+		}
+
+		public Color getColor() {
+			return color;
+		}
+
+		public void setAlpha(final String string) {
+			if (null != string) {
+				try {
+					color.setAlpha(Float.parseFloat(string));
+				} catch (final Exception e) {
+					plugin.console.sendMessage("Invalid alpha setting: " + string);
+				}
+			}
+		}
+
+		public void setColor(final VisualControlColor color) {
+			this.color = color;
+		}
+	}
+
 	public class CloudVisuals extends SkyObject {
 		private int level = 108;
+		private VisualControlColor color;
 
 		public CloudVisuals(final boolean visible, final int level) {
 			try {
@@ -22,8 +54,25 @@ public class WorldVisualData {
 			setVisibility(visible);
 		}
 
+		public Color getColor() {
+			return color;
+		}
+
 		public int getLevel() {
 			return level;
+		}
+
+		public void setAlpha(final String string) {
+			if (null != string) {
+				try {
+					color.setAlpha(Float.parseFloat(string));
+				} catch (final Exception e) {
+				}
+			}
+		}
+
+		public void setColor(final VisualControlColor color) {
+			this.color = color;
 		}
 
 		@Override
@@ -172,6 +221,8 @@ public class WorldVisualData {
 	public StarVisuals stars = new StarVisuals(true, 1500);
 	public SkyOrb sun = new SkyOrb("sun", true, 100);
 	public SkyOrb moon = new SkyOrb("moon", true, 100);
+	public AetherVisuals fog = new AetherVisuals();
+	public AetherVisuals sky = new AetherVisuals();
 
 	public WorldVisualData(final VisualControlPlayerManager playerManager) {
 		WorldVisualData.playerManager = playerManager;
@@ -196,6 +247,21 @@ public class WorldVisualData {
 			stars.setVisibility(false);
 		break;
 		}
+	}
+
+	private boolean assignTexture(final SpoutPlayer player, final String title, final String file) {
+		if (!file.equalsIgnoreCase(playerManager.getPlayerData(player, "texture"))) {
+			if (file.equalsIgnoreCase("original")) {
+				player.resetTexturePack();
+			} else {
+				player.setTexturePack(file);
+			}
+			playerManager.setPlayerData(player, "texture", file);
+			if (VisualControlPlayerManager.announce) {
+				player.sendNotification("Visual Control", title + " loaded.", Material.PAINTING);
+			}
+		}
+		return true;
 	}
 
 	public boolean doCommand(final CommandSender sender, final String entity, final String setting) {
@@ -281,29 +347,21 @@ public class WorldVisualData {
 			SpoutManager.getSkyManager().setStarsVisible(player, stars.isVisible());
 			SpoutManager.getSkyManager().setMoonVisible(player, moon.isVisible());
 			SpoutManager.getSkyManager().setSunVisible(player, sun.isVisible());
+			SpoutManager.getSkyManager().setFogColor(player, fog.getColor());
+			SpoutManager.getSkyManager().setSkyColor(player, sky.getColor());
 
 			if (defaultTexturePack == false) {
-				if ((textureFile != null) && (playerManager.getPlayerData(player, "texture") != textureFile.toString())) {
-					player.setTexturePack(textureFile.toString());
-					playerManager.setPlayerData(player, "texture", textureFile.toString());
-					if (VisualControlPlayerManager.announce) {
-						player.sendNotification("Visual Control", textureTitle.toString() + " loaded.", Material.PAINTING);
-					}
+				if (textureFile != null) {
+					assignTexture(player, textureTitle.toString(), textureFile.toString());
 				}
 			} else {
-				if ((VisualControlPlayerManager.defaultFile != null) && (playerManager.getPlayerData(player, "texture") != VisualControlPlayerManager.defaultFile.toString())) {
-					player.setTexturePack(VisualControlPlayerManager.defaultFile.toString());
-					playerManager.setPlayerData(player, "texture", VisualControlPlayerManager.defaultFile.toString());
-					if (VisualControlPlayerManager.announce) {
-						player.sendNotification("Visual Control", VisualControlPlayerManager.defaultTitle.toString() + " loaded.", Material.PAINTING);
-					}
-				} else {
-					playerManager.setPlayerData(player, "texture", "");
-					// player.resetTextureControl();
+				if (VisualControlPlayerManager.defaultFile != null) {
+					assignTexture(player, VisualControlPlayerManager.defaultTitle.toString(), VisualControlPlayerManager.defaultFile.toString());
 				}
 			}
 			if (clouds.isVisible()) {
 				SpoutManager.getSkyManager().setCloudHeight(player, clouds.getLevel());
+				SpoutManager.getSkyManager().setCloudColor(player, clouds.getColor());
 			}
 			if (stars.isVisible()) {
 				SpoutManager.getSkyManager().setStarFrequency(player, stars.getFrequency());

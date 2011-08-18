@@ -18,9 +18,7 @@ import org.getspout.spoutapi.player.SpoutPlayer;
  * @author mgsmith
  */
 public class VisualControlPlayerManager {
-
 	public static Configuration config;
-
 	public static Boolean announce = new Boolean(null);
 	public static Boolean update = new Boolean(null);
 	public static String defaultTitle = new String();
@@ -57,6 +55,7 @@ public class VisualControlPlayerManager {
 		config.load();
 		if (config.getHeader() == null) {
 			config.setHeader("# " + plugin.name + " " + plugin.version, "# locksmyth", "#", "#", "# Configuration options ",
+								"# You can use the keyworld ORIGINAL to return the player to the texture pack they logged in with.", "# i.e. file: ORIGINAL",
 								"# announce: <true/false> // is the player notified of the loading of a new texture pack",
 								"# defaultFile : <URL> // the URL to a direct download of the texture pack",
 								"# defaultTitle : <STRING> // the title of the default texturepack to load", "# worlds:", "#     <world_name>:", "#         texturePack:",
@@ -80,14 +79,14 @@ public class VisualControlPlayerManager {
 			update = config.getBoolean("update", false);
 		}
 		if (config.getProperty("defaultTitle") == null) {
-			config.setProperty("defaultTitle", "AlchemyX");
-			defaultTitle = "AlchemyX";
+			config.setProperty("defaultTitle", "default");
+			defaultTitle = "default";
 		} else {
 			defaultTitle = config.getString("defaultTitle");
 		}
 		if (config.getProperty("defaultFile") == null) {
-			config.setProperty("defaultFile", "http://dl.dropbox.com/u/21888917/AXSteam0.2.zip");
-			defaultFile = "http://dl.dropbox.com/u/21888917/AXSteam0.2.zip";
+			config.setProperty("defaultFile", "ORIGINAL");
+			defaultFile = "ORIGINAL";
 		} else {
 			defaultFile = config.getString("defaultFile");
 		}
@@ -115,6 +114,14 @@ public class VisualControlPlayerManager {
 				worldConf.textureTitle = config.getString("worlds." + world + ".texturePack" + ".title");
 			}
 		}
+		if (config.getProperty("worlds." + world + ".fog") != null) {
+			worldConf.fog.setColor(new VisualControlColor().fromHex(config.getString("worlds." + world + ".fog" + ".color")));
+			worldConf.fog.setAlpha(config.getString("worlds." + world + ".fog" + ".color"));
+		}
+		if (config.getProperty("worlds." + world + ".sky") != null) {
+			worldConf.sky.setColor(new VisualControlColor().fromHex(config.getString("worlds." + world + ".sky" + ".color")));
+			worldConf.sky.setAlpha(config.getString("worlds." + world + ".sky" + ".color"));
+		}
 		if (config.getProperty("worlds." + world + ".sun") != null) {
 			worldConf.sun.setVisibility(config.getBoolean("worlds." + world + ".sun" + ".visible", worldConf.sun.isVisible()));
 			worldConf.sun.setURL(config.getString("worlds." + world + ".sun" + ".file"));
@@ -132,6 +139,8 @@ public class VisualControlPlayerManager {
 		if (config.getProperty("worlds." + world + ".clouds") != null) {
 			worldConf.clouds.setVisibility(config.getBoolean("worlds." + world + ".clouds" + ".visible", worldConf.clouds.isVisible()));
 			worldConf.clouds.setLevel(config.getInt("worlds." + world + ".clouds" + ".height", worldConf.clouds.getLevel()));
+			worldConf.clouds.setColor(new VisualControlColor().fromHex(config.getString("worlds." + world + ".clouds" + ".color")));
+			worldConf.clouds.setAlpha(config.getString("worlds." + world + ".clouds" + ".color"));
 		}
 		plugin.console.sendMessage(worldConf.toString());
 		worldData.put(world, worldConf);

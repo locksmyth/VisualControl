@@ -9,7 +9,7 @@ commands:
         description: Set a configuration option.
         permission: vcset
         usage: |
-            /<command> [sun|moon|stars|clouds|use] [on|off|default|<level>|<URL>]
+            /<command> [sun|moon|stars|clouds|use|title] [on|off|default|<level>|<URL>|<string>]
     vcupdate:
         description: Update a players visuals.
         permission: vcupdate
@@ -20,7 +20,15 @@ commands:
         permission: vcreload
         usage: |
             /<command>
+    vcedit:
+        description: Loads the GUI.
+        permission: vcedit
+        usage: |
+            /<command>
 permissions:
+permissions:
+    vcedit.*:
+        description: Gives access to all vcset commands
     vcset.*:
         description: Gives access to all vcset commands
         children:

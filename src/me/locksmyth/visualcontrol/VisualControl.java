@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.getspout.spoutapi.SpoutManager;
 
 public class VisualControl extends JavaPlugin {
 	public enum KeyWords {
@@ -29,6 +30,8 @@ public class VisualControl extends JavaPlugin {
 			}
 		}
 	}
+
+	private VisualControlGui screen = new VisualControlGui(this);
 
 	private final VisualControlListener listener = new VisualControlListener(this);
 	final VisualControlPlayerManager playerManager = new VisualControlPlayerManager(this);
@@ -104,6 +107,16 @@ public class VisualControl extends JavaPlugin {
 				sender.sendMessage("Visual Control could not reload itself after being disabled.\nSorry.");
 			}
 		}
+		if (cmd.getName().equalsIgnoreCase("vcedit")) {
+			if (!(sender instanceof Player)) {
+				sender.sendMessage("You must be a player to use the gui.");
+				return false;
+			}
+			final String world = ((Player) sender).getWorld().getName();
+			screen = new VisualControlGui(world);
+			SpoutManager.getPlayer((Player) sender).getMainScreen().attachPopupScreen(screen);
+			return true;
+		}
 		return false;
 	}
 
@@ -126,6 +139,7 @@ public class VisualControl extends JavaPlugin {
 		pm.registerEvent(Event.Type.PLAYER_PORTAL, listener.player, Event.Priority.Normal, this);
 		pm.registerEvent(Event.Type.PLAYER_RESPAWN, listener.player, Event.Priority.Normal, this);
 		pm.registerEvent(Event.Type.PLAYER_TELEPORT, listener.player, Event.Priority.Normal, this);
+		pm.registerEvent(Event.Type.PLAYER_QUIT, listener.player, Event.Priority.Normal, this);
 
 		console.sendMessage("[" + name + "] " + name + " " + version + " enabled");
 	}
